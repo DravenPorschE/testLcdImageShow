@@ -1,11 +1,10 @@
+import os
+os.putenv('SDL_VIDEODRIVER', 'fbcon')
+os.putenv('SDL_FBDEV', '/dev/fb1')  # or /dev/fb0 if fb1 doesn't exist
+os.putenv('SDL_NOMOUSE', '1')
+
 import pygame
 import sys
-import os
-
-# Tell SDL to use the framebuffer
-os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')  # change if your LCD uses a different framebuffer
-os.putenv('SDL_NOMOUSE', '1')       # optional, hides mouse cursor
 
 # Initialize only the display module
 pygame.display.init()
