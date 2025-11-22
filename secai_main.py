@@ -1,54 +1,104 @@
-import os
-os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')  # or /dev/fb0 if fb1 doesn't exist
-os.putenv('SDL_NOMOUSE', '1')
+#!/usr/bin/env python3
+"""
+Simple Pygame animation for Raspberry Pi
+Runs with X server (startx)
+"""
 
 import pygame
 import sys
+import os
 
-# Initialize only the display module
-pygame.display.init()
-pygame.font.init()  # optional if you use fonts
+# Don't set framebuffer variables - use X server instead
+# These cause "fbcon not available" error on modern Raspberry Pi OS
 
-# Fullscreen mode for framebuffer
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-WIDTH, HEIGHT = screen.get_size()
+def main():
+    # Initialize pygame
+    try:
+        pygame.init()
+    except Exception as e:
+        print(f"Error initializing pygame: {e}")
+        sys.exit(1)
 
-pygame.display.set_caption("Simple Animation")
+    # Get display info
+    info = pygame.display.Info()
+    print(f"Display resolution: {info.current_w}x{info.current_h}")
 
-# Load your image
-image = pygame.image.load("tin_available.png")
-image_rect = image.get_rect()
+    # Create fullscreen display
+    try:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        WIDTH, HEIGHT = screen.get_size()
+        print(f"Screen size: {WIDTH}x{HEIGHT}")
+    except Exception as e:
+        print(f"Error creating display: {e}")
+        # Fallback to windowed mode
+        screen = pygame.display.set_mode((1280, 720))
+        WIDTH, HEIGHT = 1280, 720
 
-# Starting position
-x_pos = 0
-y_pos = (HEIGHT - image_rect.height) // 2  # center vertically
-speed = 2  # pixels per frame
+    pygame.display.set_caption("Simple Animation")
 
-# Main loop
-clock = pygame.time.Clock()
+    # Load image with error handling
+    image_path = "tin_available.png"
+    
+    if not os.path.exists(image_path):
+        print(f"Error: {image_path} not found!")
+        print(f"Current directory: {os.getcwd()}")
+        print(f"Files in directory: {os.listdir('.')}")
+        pygame.quit()
+        sys.exit(1)
+    
+    try:
+        image = pygame.image.load(image_path)
+        image_rect = image.get_rect()
+        print(f"Image loaded: {image_rect.width}x{image_rect.height}")
+    except Exception as e:
+        print(f"Error loading image: {e}")
+        pygame.quit()
+        sys.exit(1)
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+    # Starting position
+    x_pos = 0
+    y_pos = (HEIGHT - image_rect.height) // 2  # center vertically
+    speed = 2  # pixels per frame
 
-    # Move the image
-    x_pos += speed
+    # Colors
+    BLACK = (0, 0, 0)
 
-    # Reset position if it goes off screen
-    if x_pos > WIDTH:
-        x_pos = -image_rect.width
+    # Main loop
+    clock = pygame.time.Clock()
+    running = True
 
-    # Clear screen
-    screen.fill((0, 0, 0))  # black background
+    print("Starting animation loop. Press ESC or Q to quit.")
 
-    # Draw image at new position
-    screen.blit(image, (x_pos, y_pos))
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    running = False
 
-    # Update the display
-    pygame.display.flip()
+        # Move the image
+        x_pos += speed
 
-    # Control the frame rate
-    clock.tick(60)  # 60 FPS
+        # Reset position if it goes off screen
+        if x_pos > WIDTH:
+            x_pos = -image_rect.width
+
+        # Clear screen
+        screen.fill(BLACK)
+
+        # Draw image at new position
+        screen.blit(image, (x_pos, y_pos))
+
+        # Update the display
+        pygame.display.flip()
+
+        # Control the frame rate
+        clock.tick(60)  # 60 FPS
+
+    # Clean exit
+    pygame.quit()
+    print("Animation stopped.")
+
+if __name__ == "__main__":
+    main()
