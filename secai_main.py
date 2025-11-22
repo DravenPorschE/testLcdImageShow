@@ -1,12 +1,20 @@
 import pygame
 import sys
+import os
 
-# Initialize Pygame
-pygame.init()
+# Tell SDL to use the framebuffer
+os.putenv('SDL_VIDEODRIVER', 'fbcon')
+os.putenv('SDL_FBDEV', '/dev/fb1')  # change if your LCD uses a different framebuffer
+os.putenv('SDL_NOMOUSE', '1')       # optional, hides mouse cursor
 
-# Screen dimensions
-WIDTH, HEIGHT = 320, 240   # adjust to your Pi LCD
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# Initialize only the display module
+pygame.display.init()
+pygame.font.init()  # optional if you use fonts
+
+# Fullscreen mode for framebuffer
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+WIDTH, HEIGHT = screen.get_size()
+
 pygame.display.set_caption("Simple Animation")
 
 # Load your image
