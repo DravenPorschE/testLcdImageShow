@@ -34,7 +34,7 @@ def main():
     pygame.display.set_caption("Bouncing Animation")
 
     # Load image with error handling
-    image_path = "/home/secai/files/testLcdImageShow/tin_available.png"
+    image_path = "/home/secai/files/testLcdImageShow/bisco.bmp"
     
     if not os.path.exists(image_path):
         print(f"Error: {image_path} not found!")
