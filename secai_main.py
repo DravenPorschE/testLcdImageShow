@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """
-Simple Pygame animation for Raspberry Pi
-Runs with X server (startx)
+Pygame animation for Raspberry Pi with auto-scaling and bouncing
+Automatically detects display size, scales image to fit, and bounces horizontally
 """
 
 import pygame
 import sys
 import os
-
-# Don't set framebuffer variables - use X server instead
-# These cause "fbcon not available" error on modern Raspberry Pi OS
 
 def main():
     # Initialize pygame
@@ -30,11 +27,11 @@ def main():
         print(f"Screen size: {WIDTH}x{HEIGHT}")
     except Exception as e:
         print(f"Error creating display: {e}")
-        # Fallback to windowed mode
-        screen = pygame.display.set_mode((1280, 720))
-        WIDTH, HEIGHT = 1280, 720
+        # Fallback to windowed mode (typical for 3.5" SPI: 480x320)
+        screen = pygame.display.set_mode((480, 320))
+        WIDTH, HEIGHT = 480, 320
 
-    pygame.display.set_caption("Simple Animation")
+    pygame.display.set_caption("Bouncing Animation")
 
     # Load image with error handling
     image_path = "tin_available.png"
@@ -47,18 +44,35 @@ def main():
         sys.exit(1)
     
     try:
-        image = pygame.image.load(image_path)
-        image_rect = image.get_rect()
-        print(f"Image loaded: {image_rect.width}x{image_rect.height}")
+        original_image = pygame.image.load(image_path)
+        original_rect = original_image.get_rect()
+        print(f"Original image size: {original_rect.width}x{original_rect.height}")
     except Exception as e:
         print(f"Error loading image: {e}")
         pygame.quit()
         sys.exit(1)
 
-    # Starting position
+    # Scale image to fit screen (max 40% of screen width/height)
+    max_width = int(WIDTH * 0.4)
+    max_height = int(HEIGHT * 0.4)
+    
+    # Calculate scaling factor to maintain aspect ratio
+    width_ratio = max_width / original_rect.width
+    height_ratio = max_height / original_rect.height
+    scale_factor = min(width_ratio, height_ratio)
+    
+    new_width = int(original_rect.width * scale_factor)
+    new_height = int(original_rect.height * scale_factor)
+    
+    image = pygame.transform.smoothscale(original_image, (new_width, new_height))
+    image_rect = image.get_rect()
+    print(f"Scaled image size: {new_width}x{new_height}")
+
+    # Starting position (center vertically)
     x_pos = 0
-    y_pos = (HEIGHT - image_rect.height) // 2  # center vertically
-    speed = 2  # pixels per frame
+    y_pos = (HEIGHT - image_rect.height) // 2
+    speed = 3  # pixels per frame
+    direction = 1  # 1 for right, -1 for left
 
     # Colors
     BLACK = (0, 0, 0)
@@ -67,7 +81,7 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    print("Starting animation loop. Press ESC or Q to quit.")
+    print("Starting bouncing animation. Press ESC or Q to quit.")
 
     while running:
         for event in pygame.event.get():
@@ -78,11 +92,15 @@ def main():
                     running = False
 
         # Move the image
-        x_pos += speed
+        x_pos += speed * direction
 
-        # Reset position if it goes off screen
-        if x_pos > WIDTH:
-            x_pos = -image_rect.width
+        # Bounce when hitting edges
+        if x_pos <= 0:
+            x_pos = 0
+            direction = 1  # Change direction to right
+        elif x_pos >= WIDTH - image_rect.width:
+            x_pos = WIDTH - image_rect.width
+            direction = -1  # Change direction to left
 
         # Clear screen
         screen.fill(BLACK)
