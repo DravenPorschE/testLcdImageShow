@@ -23,7 +23,7 @@ def main():
     # Create fullscreen display
     try:
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        WIDTH, HEIGHT = screen.get_size()
+        WIDTH, HEIGHT = 480, 320
         print(f"Screen size: {WIDTH}x{HEIGHT}")
     except Exception as e:
         print(f"Error creating display: {e}")
