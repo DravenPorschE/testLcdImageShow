@@ -5,9 +5,13 @@ Automatically detects display size, scales image to fit, and bounces horizontall
 Includes a loading screen with spinning overlay
 """
 
+import os
+os.putenv('SDL_VIDEODRIVER', 'fbcon')
+os.putenv('SDL_FBDEV', '/dev/fb1')
+os.putenv('SDL_NOMOUSE', '1')
+
 import pygame
 import sys
-import os
 import math
 
 def draw_spinner(surface, center_x, center_y, radius, angle, color=(255, 255, 255), thickness=4):
