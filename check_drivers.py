@@ -1,24 +1,50 @@
-import pygame
 import os
+import sys
+import time
+import pygame
 
-# Point to the SPI screen
+# --- CONFIGURATION ---
+# 1. Use the specific driver for RPi SPI screens
+os.environ['SDL_VIDEODRIVER'] = 'linuxfb'
+# 2. Point to the specific framebuffer (SPI is usually fb1)
 os.environ['SDL_FBDEV'] = '/dev/fb1'
+# 3. Disable mouse to prevent errors
+os.environ['SDL_NOMOUSE'] = '1'
 
-try:
+def main():
+    print("Initializing Pygame Video only...")
+    
+    # Initialize ONLY display (Avoids ALSA/Audio errors)
     pygame.display.init()
-    print("Pygame initialized successfully!")
-    print("Driver used:", pygame.display.get_driver())
-except pygame.error as e:
-    print(f"Failed: {e}")
-
-print("\nAttempting to force specific drivers:")
-drivers = ['fbcon', 'directfb', 'linuxfb', 'svgalib', 'kmsdrm', 'dummy']
-
-for driver in drivers:
-    os.environ['SDL_VIDEODRIVER'] = driver
+    
+    # Get the screen dimensions automatically
+    # We use FULLSCREEN so it grabs the correct resolution of /dev/fb1
     try:
-        pygame.display.quit()
-        pygame.display.init()
-        print(f"SUCCESS with driver: {driver}")
-    except pygame.error:
-        print(f"Failed with driver: {driver}")
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        w, h = screen.get_size()
+        print(f"Display initialized: {w}x{h}")
+    except Exception as e:
+        print(f"Fullscreen failed, trying 480x320 fallback. Error: {e}")
+        screen = pygame.display.set_mode((480, 320))
+
+    # 1. Fill background with BLACK
+    screen.fill((0, 0, 0))
+
+    # 2. Draw RED square (20x20) at (0,0)
+    # Color format: (R, G, B) -> (255, 0, 0) is Red
+    # Rect format: (x, y, width, height)
+    pygame.draw.rect(screen, (255, 0, 0), (0, 0, 20, 20))
+
+    # 3. Update the display to show the changes
+    pygame.display.flip()
+    print("Red square drawn at 0,0. Waiting 10 seconds...")
+
+    # Keep script running for 10 seconds so you can see it
+    time.sleep(10)
+
+    # Clean exit
+    pygame.quit()
+    print("Test complete.")
+
+if __name__ == "__main__":
+    main()
