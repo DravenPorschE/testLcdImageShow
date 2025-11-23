@@ -98,15 +98,12 @@ def main():
     # Initialize pygame
     try:
         pygame.init()
+        pygame.display.init()  # Explicitly initialize display
     except Exception as e:
         print(f"Error initializing pygame: {e}")
         sys.exit(1)
 
-    # Get display info
-    info = pygame.display.Info()
-    print(f"Display resolution: {info.current_w}x{info.current_h}")
-
-    # Create fullscreen display
+    # Create display first, then get info
     try:
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         WIDTH, HEIGHT = screen.get_size()
@@ -114,8 +111,14 @@ def main():
     except Exception as e:
         print(f"Error creating display: {e}")
         # Fallback to windowed mode (typical for 3.5" SPI: 480x320)
-        screen = pygame.display.set_mode((480, 320))
-        WIDTH, HEIGHT = 480, 320
+        try:
+            screen = pygame.display.set_mode((480, 320))
+            WIDTH, HEIGHT = 480, 320
+            print(f"Using fallback resolution: {WIDTH}x{HEIGHT}")
+        except Exception as e2:
+            print(f"Fallback also failed: {e2}")
+            pygame.quit()
+            sys.exit(1)
 
     pygame.display.set_caption("Bouncing Animation")
     
@@ -130,7 +133,10 @@ def main():
     if not os.path.exists(image_path):
         print(f"Error: {image_path} not found!")
         print(f"Current directory: {os.getcwd()}")
-        print(f"Files in directory: {os.listdir('.')}")
+        try:
+            print(f"Files in directory: {os.listdir('.')}")
+        except:
+            pass
         pygame.quit()
         sys.exit(1)
     
